@@ -1,0 +1,45 @@
+! Test file 2 — edge cases and boundary conditions
+
+! ---- Circle containment ----
+! C_outer contains C_inner entirely
+circle C_outer 200 200 100
+circle C_inner 200 200 30
+
+! C_tiny is just inside C_outer
+circle C_tiny 280 200 15
+
+! C_near is just outside C_outer — near miss, no collision
+circle C_near 320 200 18
+
+! ---- Touching circles (boundary collision) ----
+! C_left and C_right touch exactly at one point
+circle C_left  400 200 50
+circle C_right 500 200 50
+
+! ---- Rectangle entirely inside circle ----
+! R_inbox is fully inside C_outer
+rectangle R_inbox 170 170 50 40 0
+
+! ---- Circle entirely inside rectangle ----
+! R_big contains C_small
+rectangle R_big 500 300 160 160 0
+circle C_small 580 380 20
+
+! ---- Axis-aligned near miss ----
+! R_A and R_B are adjacent but not touching
+rectangle R_A 100 400 80 60 0
+rectangle R_B 185 400 80 60 0
+
+! ---- Axis-aligned overlap ----
+! R_C and R_D clearly overlap
+rectangle R_C 300 400 100 80 0
+rectangle R_D 360 440 100 80 0
+
+! ---- Rotated rectangle entirely inside a circle ----
+circle C_wrap 700 200 90
+rectangle R_wrapped 670 170 50 40 30
+
+! ---- Two rotated rects that only collide because of rotation ----
+! Would be separated if axis-aligned
+rectangle R_rot1 650 400 120 15 50
+rectangle R_rot2 680 420 120 15 -50

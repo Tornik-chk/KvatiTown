@@ -1,0 +1,40 @@
+! Test objects file for collision checker
+! Covers: circle-circle, circle-rect, rect-rect (axis-aligned and rotated)
+! Also covers: containment cases
+
+! ---- Circle vs Circle ----
+! C1 and C2 overlap
+circle C1 100 100 50
+circle C2 160 100 40
+
+! C3 is entirely inside C1
+circle C3 100 100 20
+
+! C4 is far away, no collision
+circle C4 400 400 30
+
+! ---- Circle vs Rectangle (axis-aligned) ----
+! R1 overlaps C1
+rectangle R1 120 60 80 50 0
+
+! R2 is entirely around C4 (containment)
+rectangle R2 360 360 80 80 0
+
+! R3 far away, no collision
+rectangle R3 500 500 60 40 0
+
+! ---- Rectangle vs Rectangle (axis-aligned) ----
+! R4 and R5 overlap
+rectangle R4 250 100 80 60 0
+rectangle R5 290 120 80 60 0
+
+! ---- Rotated rectangles ----
+! R6 and R7 overlap when rotated (would not overlap if axis-aligned)
+rectangle R6 300 300 100 20 45
+rectangle R7 330 310 100 20 -45
+
+! R8 rotated, collides with C4
+rectangle R8 370 370 60 60 30
+
+! R9 isolated rotated rectangle
+rectangle R9 600 100 80 40 -20

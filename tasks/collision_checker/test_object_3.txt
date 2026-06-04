@@ -1,0 +1,36 @@
+! Test file 3 — larger mixed scene
+
+! ---- Cluster 1: three circles mutually colliding ----
+circle CA 150 150 60
+circle CB 240 150 60
+circle CC 195 230 60
+
+! ---- Cluster 2: chain of rectangles each touching the next ----
+rectangle RA 50  400 100 40 0
+rectangle RB 145 400 100 40 0
+rectangle RC 240 400 100 40 0
+! RD is separated from the chain
+rectangle RD 400 400 100 40 0
+
+! ---- Mixed cluster: circle collides with two rects ----
+circle CD 550 150 55
+rectangle RE 510 100 80 60 0
+rectangle RF 540 160 80 60 20
+
+! ---- Rotated rect vs circle, corner graze ----
+! RG is rotated so only its corner enters CG
+circle CG 700 300 30
+rectangle RG 660 240 80 40 -55
+
+! ---- Rectangle containing another rectangle ----
+rectangle R_outer 100 550 200 150 0
+rectangle R_inner 140 580 80  60  0
+
+! ---- Two rotated rects, parallel, no collision ----
+rectangle RH 400 550 120 20 30
+rectangle RI 400 620 120 20 30
+
+! ---- Isolated objects (no collisions) ----
+circle C_iso1 750 550 25
+circle C_iso2 750 650 25
+rectangle R_iso 850 100 60 60 45

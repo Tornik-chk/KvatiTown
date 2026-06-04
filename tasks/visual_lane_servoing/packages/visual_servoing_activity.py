@@ -18,7 +18,65 @@ _white_lower = np.array([_h.get('white_lower_h', 0),   _h.get('white_lower_s', 0
 _white_upper = np.array([_h.get('white_upper_h', 0), _h.get('white_upper_s', 0), _h.get('white_upper_v', 0)])
 
 def detect_lane_markings(image: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
-    raise NotImplementedError("TODO: Implement this function")
+    """
+    Detect lane markings (yellow dashed and white solid lines) from camera image.
+
+    Args:
+        image: BGR image from camera
+
+    Returns:
+        Tuple of (left_lane, right_lane) where:
+        - left_lane: filtered gradient magnitudes for yellow dashed line
+        - right_lane: filtered gradient magnitudes for white solid line
+    """
+    # Convert BGR to grayscale and HSV
+    img_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    img_hsv  = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+
+    # Gaussian blur — ksize=(0,0) lets OpenCV derive kernel from sigma
+    sigma = 1.5
+    img_gaussian = cv2.GaussianBlur(img_gray, (0, 0), sigma)
+
+    # Sobel derivatives
+    sobelx = cv2.Sobel(img_gaussian, cv2.CV_64F, 1, 0)
+    sobely = cv2.Sobel(img_gaussian, cv2.CV_64F, 0, 1)
+
+    # Gradient magnitude
+    Gmag = np.sqrt(sobelx ** 2 + sobely ** 2)
+
+    # Magnitude threshold — normalized to image max to be lighting-invariant
+    gmag_max = Gmag.max()
+    if gmag_max == 0:
+        return np.zeros_like(Gmag), np.zeros_like(Gmag)
+    threshold = 0.15 * gmag_max
+    mask_mag = Gmag > threshold
+
+    # Spatial half-masks
+    height, width = img_gray.shape
+    mid = width // 2
+    mask_left  = np.zeros((height, width), dtype=bool)
+    mask_right = np.zeros((height, width), dtype=bool)
+    mask_left[:,  :mid] = True
+    mask_right[:, mid:] = True
+
+    # Sobel sign masks — no sobely constraint, only sobelx matters
+    # Left/yellow: left edge of bright marking → sobelx > 0
+    # Right/white: right edge of bright marking → sobelx < 0
+    mask_sobelx_pos = sobelx > 0
+    mask_sobelx_neg = sobelx < 0
+
+    # HSV color masks — bool for clean arithmetic
+    mask_yellow = cv2.inRange(img_hsv, _yellow_lower, _yellow_upper).astype(bool)
+    mask_white  = cv2.inRange(img_hsv, _white_lower,  _white_upper ).astype(bool)
+
+    # Combine masks — all bool, no dtype mixing
+    mask_left_final  = mask_left  & mask_mag & mask_sobelx_pos & mask_yellow
+    mask_right_final = mask_right & mask_mag & mask_sobelx_neg & mask_white
+
+    left_lane  = np.where(mask_left_final,  Gmag, 0.0)
+    right_lane = np.where(mask_right_final, Gmag, 0.0)
+
+    return left_lane, right_lane
 
 
 
