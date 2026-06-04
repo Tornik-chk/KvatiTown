@@ -1,6 +1,6 @@
-lower_h: 0
-lower_s: 0
-lower_v: 0
-upper_h: 0
-upper_s: 0
+lower_h: 20
+lower_s: 100
+lower_v: 100
+upper_h: 35
+upper_s: 255
 upper_v: 255
