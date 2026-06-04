@@ -1,0 +1,11 @@
+{
+  "include": [
+    "duckiebot",
+    "launcher",
+    "servers",
+    "tasks",
+    "launch.py"
+  ],
+  "extraPaths": ["."],
+  "pythonVersion": "3.11"
+}

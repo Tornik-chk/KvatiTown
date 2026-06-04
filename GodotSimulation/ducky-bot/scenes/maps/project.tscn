@@ -11,6 +11,15 @@
 [ext_resource type="PackedScene" uid="uid://by8pqr474iaqj" path="res://scenes/robot/duckie_bot.tscn" id="9_5xmy2"]
 [ext_resource type="Script" uid="uid://frrhxfeqwt4d" path="res://scripts/path_follow_3d.gd" id="11_ucdee"]
 [ext_resource type="PackedScene" uid="uid://dsxbif155ikun" path="res://scenes/robot/duckie_bot_npc.tscn" id="12_3bncg"]
+[ext_resource type="Texture2D" uid="uid://0bhkkg5f6qhi"  path="res://textures/tag36h11/tag36_11_00025.png" id="13_tag25"]
+[ext_resource type="Texture2D" uid="uid://dykdgmoubeymq" path="res://textures/tag36h11/tag36_11_00026.png" id="14_tag26"]
+[ext_resource type="Texture2D" uid="uid://bblcnqda5fto5" path="res://textures/tag36h11/tag36_11_00027.png" id="15_tag27"]
+[ext_resource type="Texture2D" uid="uid://dr8o3el0angnb" path="res://textures/tag36h11/tag36_11_00028.png" id="16_tag28"]
+[ext_resource type="Texture2D" uid="uid://nccnyjcygiqy"  path="res://textures/tag36h11/tag36_11_00031.png" id="17_tag31"]
+[ext_resource type="Texture2D" uid="uid://bd4ix8mvi4jsj" path="res://textures/tag36h11/tag36_11_00033.png" id="18_tag33"]
+[ext_resource type="Texture2D" uid="uid://wm73tk71k7fm" path="res://textures/tag36h11/tag36_11_00057.png" id="19_tag57"]
+[ext_resource type="Texture2D" uid="uid://dws4kgi2tijwn" path="res://textures/tag36h11/tag36_11_00061.png" id="20_tag61"]
+[ext_resource type="Texture2D" uid="uid://ctjf3tmmky78j" path="res://textures/tag36h11/tag36_11_00075.png" id="21_tag75"]
 
 [sub_resource type="Curve3D" id="Curve3D_xdp4q"]
 _data = {
@@ -275,27 +284,35 @@ sign_texture = ExtResource("7_xv6rw")
 
 [node name="Sign_4_6" parent="Signs" unique_id=914577599 instance=ExtResource("6_n1yv4")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.4, 0.091, 3.6)
+sign_texture = ExtResource("13_tag25")
 
 [node name="Sign_10_9" parent="Signs" unique_id=50444080 instance=ExtResource("6_n1yv4")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 6, 0.091, 5.4)
+sign_texture = ExtResource("14_tag26")
 
 [node name="Sign_10_10" parent="Signs" unique_id=338324099 instance=ExtResource("6_n1yv4")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0.091, 6)
+sign_texture = ExtResource("19_tag57")
 
 [node name="Sign_9_10" parent="Signs" unique_id=1921600219 instance=ExtResource("6_n1yv4")]
 transform = Transform3D(1.1924881e-08, 0, -1, 0, 1, 0, 1, 0, 1.1924881e-08, 5.4, 0.091, 6)
+sign_texture = ExtResource("20_tag61")
 
 [node name="Sign_9_9" parent="Signs" unique_id=1516801057 instance=ExtResource("6_n1yv4")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 5.4, 0.091, 5.4)
+sign_texture = ExtResource("15_tag27")
 
 [node name="Sign_11_5" parent="Signs" unique_id=843150894 instance=ExtResource("6_n1yv4")]
 transform = Transform3D(1.1924881e-08, 0, -1, 0, 1, 0, 1, 0, 1.1924881e-08, 6.6, 0.091, 3)
+sign_texture = ExtResource("16_tag28")
 
 [node name="Sign_11_4" parent="Signs" unique_id=1722985175 instance=ExtResource("6_n1yv4")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 6.6, 0.091, 2.4)
+sign_texture = ExtResource("17_tag31")
 
 [node name="Sign_1_10" parent="Signs" unique_id=882736530 instance=ExtResource("8_tw3f0")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0.6, 0.091, 6)
+sign_texture = ExtResource("21_tag75")
 
 [node name="DuckieBot" parent="." unique_id=865415826 instance=ExtResource("9_5xmy2")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.832, 0.155, 6.3)
