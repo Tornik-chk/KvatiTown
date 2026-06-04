@@ -42,9 +42,17 @@ python -m venv .venv
 
 ### 2. Install dependencies
 
+**Python version:** Python **3.11 or 3.12** is the safest choice for this course. If you use **3.13**, `requirements.txt` installs NumPy 2 and OpenCV 4.10+ automatically (NumPy 1.x cannot be installed on 3.13 without a C++ compiler).
+
 **Simulation (your laptop/desktop):**
 ```bash
 pip install -r requirements.txt
+```
+
+If `import cv2` fails after upgrading, reinstall the matching pair:
+```bash
+# Python 3.13 only
+pip install "numpy>=2,<3" "opencv-python>=4.10.0.84"
 ```
 
 ## Robot Dashboard
