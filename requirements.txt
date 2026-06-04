@@ -10,3 +10,4 @@ pyserial
 jupyter
 matplotlib
 onnxruntime
+pupil-apriltags>=1.0.4
