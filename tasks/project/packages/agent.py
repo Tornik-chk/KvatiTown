@@ -13,6 +13,7 @@ import random
 import time
 from dataclasses import dataclass, field
 from enum import Enum
+from ipaddress import summarize_address_range
 from typing import Callable, List, Optional, Tuple
 
 import yaml

@@ -1,157 +1,152 @@
+"""AprilTag traffic-sign detection (single-file module for the team repo).
+
+Detects tag36h11 markers, maps tag IDs to sign types, returns distance/bearing.
+Must match agent.py imports: SignType, TagObservation, SignDetector.
 """
-sign_detector.py — April tag detection and traffic sign classification.
-
-Uses pupil-apriltags for tag detection. Install with:
-    pip install pupil-apriltags
-
-Tag family: tag36h11, IDs 1-199 are traffic signs.
-"""
-
 from __future__ import annotations
-import cv2
+
+import math
+import os
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Dict, List, Optional, Tuple
+
 import numpy as np
-from enum import Enum, auto
-from typing import Optional, Tuple
+import yaml
 
 try:
-    from pupil_apriltags import Detector
-    _APRILTAG_AVAILABLE = True
-except ImportError:
-    _APRILTAG_AVAILABLE = False
-    print("[SignDetector] WARNING: pupil-apriltags not installed. Sign detection disabled.")
+    from pupil_apriltags import Detector  # type: ignore
+    _APRILTAG_OK = True
+except Exception as _e:  # noqa: BLE001
+    Detector = None  # type: ignore
+    _APRILTAG_OK = False
+    _IMPORT_ERROR = repr(_e)
 
 
-class SignAction(Enum):
-    NONE        = auto()  # ignore / informational
-    STOP        = auto()  # full stop, then yield to cross-traffic
-    YIELD       = auto()  # yield to cross-traffic without full stop
-    SLOW        = auto()  # reduce speed temporarily
+class SignType(Enum):
+    UNKNOWN = "unknown"
+    STOP = "stop"
+    YIELD = "yield"
+    T_INTERSECTION = "t_intersection"
+    FOUR_WAY = "four_way"
+    LEFT_ONLY = "left_only"
+    RIGHT_ONLY = "right_only"
+    STRAIGHT_ONLY = "straight_only"
+    NO_LEFT = "no_left"
+    NO_RIGHT = "no_right"
+    ONE_WAY_LEFT = "one_way_left"
+    ONE_WAY_RIGHT = "one_way_right"
+    PARKING = "parking"
+    DUCKIEBOT = "duckiebot"
 
 
-# Duckietown tag36h11 ID → action mapping (IDs 1-199 are traffic signs)
-# Only actionable signs are mapped; everything else → NONE
-_ID_TO_ACTION: dict[int, SignAction] = {
-    1:  SignAction.STOP,   # stop sign
-    2:  SignAction.YIELD,  # yield
-    5:  SignAction.SLOW,   # slow down
-    6:  SignAction.SLOW,   # speed limit 10
-    7:  SignAction.SLOW,   # speed limit 15
+@dataclass
+class TagObservation:
+    tag_id: int
+    sign_type: SignType
+    distance_m: float
+    bearing_rad: float
+    corners: Tuple[Tuple[float, float], ...] = field(default_factory=tuple)
+    center_px: Tuple[int, int] = (0, 0)
+
+
+_TAG_ID_TO_SIGN: Dict[int, SignType] = {
+    25: SignType.STOP, 26: SignType.STOP, 31: SignType.STOP,
+    32: SignType.STOP, 33: SignType.STOP,
+    27: SignType.YIELD, 28: SignType.YIELD, 29: SignType.YIELD, 30: SignType.YIELD,
+    75: SignType.PARKING, 207: SignType.PARKING,
 }
 
-# Human-readable names for logging
-_ID_TO_NAME: dict[int, str] = {
-    1:  "stop",
-    2:  "yield",
-    3:  "no-entry",
-    4:  "service vehicle",
-    5:  "slow down",
-    6:  "speed limit 10",
-    7:  "speed limit 15",
-    8:  "speed limit 20",
-    9:  "speed limit 30",
-    10: "speed limit 40",
-    20: "right turn only",
-    21: "left turn only",
-    22: "oneway right",
-    23: "oneway left",
-    24: "junction",
-    25: "traffic light ahead",
-    26: "pedestrian",
-    27: "t-intersection",
-    28: "crossing",
-    29: "keep right",
-}
+_RANGE_RULES = [
+    ((1, 7), SignType.DUCKIEBOT),
+    ((8, 30), SignType.FOUR_WAY),
+    ((61, 76), SignType.T_INTERSECTION),
+    ((100, 130), SignType.LEFT_ONLY),
+    ((131, 160), SignType.RIGHT_ONLY),
+    ((161, 190), SignType.STRAIGHT_ONLY),
+    ((200, 220), SignType.PARKING),
+]
 
-# Minimum tag decision margin to trust a detection (lower = noisier)
-_MIN_DECISION_MARGIN = 30
-# Minimum tag area in pixels to act on (filters out far-away tags)
-_MIN_TAG_AREA = 800
+
+def lookup_sign(tag_id: int) -> SignType:
+    if tag_id in _TAG_ID_TO_SIGN:
+        return _TAG_ID_TO_SIGN[tag_id]
+    for (lo, hi), st in _RANGE_RULES:
+        if lo <= tag_id <= hi:
+            return st
+    return SignType.UNKNOWN
+
+
+_PROJECT_ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+_CAMERA_CFG = os.path.join(_PROJECT_ROOT, "duckiebot", "camera_driver", "config", "camera_config.yaml")
+_PROJECT_CFG = os.path.join(_PROJECT_ROOT, "config", "project_config.yaml")
+
+
+def _load_yaml(path: str) -> dict:
+    try:
+        with open(path) as f:
+            return yaml.safe_load(f) or {}
+    except Exception:
+        return {}
+
+
+def _intrinsics(width: int, height: int, fov_deg: float):
+    fx = (width / 2.0) / math.tan(math.radians(fov_deg) / 2.0)
+    return fx, fx, width / 2.0, height / 2.0
 
 
 class SignDetector:
-    """
-    Wraps pupil-apriltags detector and converts tag IDs to SignActions.
-    Call detect(frame) each frame; it returns the most actionable sign seen.
-    """
+    """AprilTag detector — used by agent.py FSM."""
 
-    def __init__(self):
-        if _APRILTAG_AVAILABLE:
-            self._detector = Detector(
-                families="tag36h11",
-                nthreads=2,
-                quad_decimate=2.0,   # downsample before detection — faster on Duckiebot
-                quad_sigma=0.0,
-                refine_edges=1,
-                decode_sharpening=0.25,
+    def __init__(self, tag_family: Optional[str] = None, tag_size_m: Optional[float] = None):
+        cam = _load_yaml(_CAMERA_CFG)
+        cfg = _load_yaml(_PROJECT_CFG)
+        self.width = int(cam.get("resolution", {}).get("width", 640))
+        self.height = int(cam.get("resolution", {}).get("height", 480))
+        self.fov_deg = float(cam.get("fov", 160))
+        self.tag_family = tag_family or cfg.get("tag_family", "tag36h11")
+        self.tag_size_m = float(tag_size_m if tag_size_m is not None else cfg.get("tag_size_m", 0.065))
+        self._cam_params = _intrinsics(self.width, self.height, self.fov_deg)
+        self.available = _APRILTAG_OK
+        self.last_error: Optional[str] = None
+        if _APRILTAG_OK:
+            self._det = Detector(
+                families=self.tag_family, nthreads=2,
+                quad_decimate=1.0, refine_edges=True,
             )
         else:
-            self._detector = None
+            self._det = None
+            self.last_error = (
+                f"pupil_apriltags import failed: {_IMPORT_ERROR}. "
+                "Run: pip install -r requirements.txt"
+            )
 
-    def detect(self, frame_bgr: np.ndarray) -> Tuple[SignAction, Optional[str], Optional[int]]:
-        """
-        Detect the most actionable traffic sign in the frame.
-
-        Args:
-            frame_bgr: BGR image from camera.read()
-
-        Returns:
-            (action, sign_name, tag_id)
-            action    — SignAction to take (NONE if nothing actionable)
-            sign_name — human-readable name, or None
-            tag_id    — raw April tag ID, or None
-        """
-        if self._detector is None:
-            return SignAction.NONE, None, None
-
-        gray = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2GRAY)
-        tags = self._detector.detect(gray)
-
-        best_action = SignAction.NONE
-        best_name   = None
-        best_id     = None
-        best_area   = 0
-
-        for tag in tags:
-            # Filter weak or distant detections
-            if tag.decision_margin < _MIN_DECISION_MARGIN:
-                continue
-
-            corners = tag.corners
-            area = _polygon_area(corners)
-            if area < _MIN_TAG_AREA:
-                continue
-
-            tag_id = tag.tag_id
-
-            # Only act on traffic sign range
-            if not (1 <= tag_id <= 199):
-                continue
-
-            action = _ID_TO_ACTION.get(tag_id, SignAction.NONE)
-            name   = _ID_TO_NAME.get(tag_id, f"sign_{tag_id}")
-
-            # Prefer higher-priority actions; break ties by tag area (closer = bigger)
-            if _action_priority(action) > _action_priority(best_action) or (
-                action == best_action and area > best_area
-            ):
-                best_action = action
-                best_name   = name
-                best_id     = tag_id
-                best_area   = area
-
-        return best_action, best_name, best_id
-
-
-def _polygon_area(corners: np.ndarray) -> float:
-    """Shoelace formula for polygon area from corner array (4x2)."""
-    x, y = corners[:, 0], corners[:, 1]
-    return 0.5 * abs(np.dot(x, np.roll(y, 1)) - np.dot(y, np.roll(x, 1)))
-
-
-def _action_priority(action: SignAction) -> int:
-    return {
-        SignAction.NONE:  0,
-        SignAction.SLOW:  1,
-        SignAction.YIELD: 2,
-        SignAction.STOP:  3,
-    }[action]
+    def detect(self, frame_rgb_or_bgr: np.ndarray) -> List[TagObservation]:
+        if not self.available or self._det is None or frame_rgb_or_bgr is None:
+            return []
+        if frame_rgb_or_bgr.ndim == 3:
+            gray = np.mean(frame_rgb_or_bgr, axis=2).astype(np.uint8)
+        else:
+            gray = frame_rgb_or_bgr.astype(np.uint8)
+        try:
+            results = self._det.detect(
+                gray, estimate_tag_pose=True,
+                camera_params=self._cam_params, tag_size=self.tag_size_m,
+            )
+        except Exception as e:  # noqa: BLE001
+            self.last_error = repr(e)
+            return []
+        out: List[TagObservation] = []
+        for r in results:
+            x, y, z = (float(v) for v in r.pose_t.flatten())
+            distance = float(np.linalg.norm([x, y, z]))
+            bearing = math.atan2(x, z)
+            out.append(TagObservation(
+                tag_id=int(r.tag_id),
+                sign_type=lookup_sign(int(r.tag_id)),
+                distance_m=distance,
+                bearing_rad=bearing,
+                corners=tuple((float(c[0]), float(c[1])) for c in r.corners),
+                center_px=(int(r.center[0]), int(r.center[1])),
+            ))
+        return out
