@@ -143,9 +143,9 @@ def start():
     global _running, agent_thread, _manual_mode
     _running     = True
     _manual_mode = False
+    agent_module.AGENT_RUNNING = True
     agent_module.AGENT_PAUSED = False
     if agent_thread is None or not agent_thread.is_alive():
-        stop_event.clear()
         agent_thread = threading.Thread(
             target=agent_module.main,
             args=(camera, wheels, None, stop_event),
@@ -159,7 +159,8 @@ def start():
 def stop():
     global _running
     _running = False
-    stop_event.set()
+    agent_module.AGENT_RUNNING = False
+    agent_module.AGENT_PAUSED = True
     if wheels:
         wheels.set_wheels_speed(0.0, 0.0)
     return jsonify({'status': 'stopped'})
@@ -299,7 +300,7 @@ def main():
 
     web_port = find_available_port(args.port)
     print(f'\nWeb interface: http://localhost:{web_port}')
-    print('Press Start in the UI to begin the agent.')
+    print('Manual mode works without Start. Press Start for autonomous driving.')
     print('=' * 60 + '\n')
 
     try:

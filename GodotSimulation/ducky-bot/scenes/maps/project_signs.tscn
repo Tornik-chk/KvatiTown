@@ -11,8 +11,7 @@
 [ext_resource type="PackedScene" uid="uid://bm6eeklw3fh22" path="res://scenes/objects/obj_parking_sign.tscn" id="9_park"]
 [ext_resource type="Texture2D" uid="uid://0bhkkg5f6qhi" path="res://textures/tag36h11/tag36_11_00025.png" id="10_tag25"]
 [ext_resource type="Texture2D" uid="uid://dykdgmoubeymq" path="res://textures/tag36h11/tag36_11_00026.png" id="11_tag26"]
-[ext_resource type="Texture2D" uid="uid://bblcnqda5fto5" path="res://textures/tag36h11/tag36_11_00027.png" id="12_tag27"]
-[ext_resource type="Texture2D" uid="uid://dr8o3el0angnb" path="res://textures/tag36h11/tag36_11_00028.png" id="13_tag28"]
+[ext_resource type="Texture2D" uid="uid://b2lrousp7ckqn" path="res://textures/tag36h11/tag36_11_00002.png" id="12_tag02"]
 [ext_resource type="Texture2D" uid="uid://nccnyjcygiqy"  path="res://textures/tag36h11/tag36_11_00031.png" id="14_tag31"]
 [ext_resource type="Texture2D" uid="uid://bd4ix8mvi4jsj" path="res://textures/tag36h11/tag36_11_00033.png" id="15_tag33"]
 [ext_resource type="Texture2D" uid="uid://wm73tk71k7fm" path="res://textures/tag36h11/tag36_11_00057.png" id="16_tag57"]
@@ -116,11 +115,11 @@ sign_texture = ExtResource("15_tag33")
 
 [node name="Sign_Yield_A" parent="Signs" instance=ExtResource("8_stop")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.55, 0.015, 4.10)
-sign_texture = ExtResource("12_tag27")
+sign_texture = ExtResource("12_tag02")
 
 [node name="Sign_Yield_B" parent="Signs" instance=ExtResource("8_stop")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 6.20, 0.015, 6.30)
-sign_texture = ExtResource("13_tag28")
+sign_texture = ExtResource("12_tag02")
 
 [node name="Sign_4Way" parent="Signs" instance=ExtResource("8_stop")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 5.95, 0.015, 5.55)
