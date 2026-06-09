@@ -12,9 +12,13 @@ detection_skip: 1
 
 approach_distance_m: 1.5     # start approaching when sign is 1.2 m away
 stop_distance_m: 0.25         # stop when stop sign is 0.30 m away
-intersection_choice_m: 0.6    # choose turn when intersection sign is 0.8 m away
+intersection_choice_m: 0.25    # choose turn when intersection sign is 0.8 m away
 
 turn_choice_cooldown: 2.0
 right_of_way_rule: "first_stopped"
 camera_fov_deg: 120.0
 tag_min_decision_margin: 5.0
+# New intersection behaviour
+intersection_stop_seconds: 1.0      # trigger delay when sign is only 0.20 m away
+turn_delay_seconds: 5.0              # move straight forward for 1 s before turning
+turn_duration_seconds: 0.6
