@@ -1,27 +1,20 @@
 # Project (Traffic Signs) — runtime configuration
-# Values are read by tasks/project/packages/agent.py and the FSM modules.
+base_speed: 0.20
+turn_speed: 0.18
+stop_decel_frames: 8
+stop_hold_seconds: 2.0
+yield_hold_seconds: 0.5
+yield_distance_m: 0.25
 
-# --- Drive ---
-base_speed: 0.20            # cruise PWM [-1..1]
-turn_speed: 0.18            # PWM while executing a turn
-stop_decel_frames: 8        # frames over which we ramp to zero (smooth stop)
-stop_hold_seconds: 2.0      # how long to hold at a STOP sign before deciding
-yield_hold_seconds: 0.5     # brief hesitation at a YIELD sign
-
-# --- AprilTag detection ---
 tag_family: "tag36h11"
-tag_size_m: 0.065           # Duckietown standard, 65 mm
-detection_skip: 1           # run detector every Nth frame (0 = every frame)
+tag_size_m: 0.065
+detection_skip: 1
 
-# --- Approach / trigger distances ---
-approach_distance_m: 0.50   # start watching a sign at this distance
-stop_distance_m: 0.18       # full stop when a stop-sign tag is within this distance
-intersection_choice_m: 0.30 # commit to a turn at this distance
+approach_distance_m: 1.5     # start approaching when sign is 1.2 m away
+stop_distance_m: 0.25         # stop when stop sign is 0.30 m away
+intersection_choice_m: 0.6    # choose turn when intersection sign is 0.8 m away
 
-# --- Right-of-way (two-robot) ---
-right_of_way_rule: "first_stopped"    # one of: "first_stopped" | "right_priority"
-intersection_clearance_seconds: 3.0   # how long we wait after the other bot has cleared
-
-# --- Obstacles (reuse object_detection model) ---
-obstacle_classes: [0, 1]    # 0=duckie, 1=truck (see tasks/object_detection/packages/integration_activity.py)
-obstacle_conf_threshold: 0.5
+turn_choice_cooldown: 2.0
+right_of_way_rule: "first_stopped"
+camera_fov_deg: 120.0
+tag_min_decision_margin: 5.0
