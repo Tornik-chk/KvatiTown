@@ -1,0 +1,181 @@
+# Tag36h11 ID → sign type (Duckietown apriltagsDB).
+# Texture filename tag36_11_00NNN.png → tag id NNN.
+# The MAP must assign the correct texture to each sign — code only looks up tag ID.
+# https://github.com/duckietown/dt-core/blob/daffy/packages/apriltag/config/apriltagsDB.yaml
+
+# Tag36h11 ID → sign type (Duckietown apriltagsDB).
+# Texture filename tag36_11_00NNN.png → tag id NNN.
+# The MAP must assign the correct texture to each sign — code only looks up tag ID.
+
+tags:
+  # STOP signs
+  1: stop
+  20: stop
+  21: stop
+  22: stop
+  23: stop
+  24: stop
+  25: stop
+  26: stop
+  27: stop
+  28: stop
+  29: stop
+  30: stop
+  31: stop
+  32: stop
+  33: stop
+  34: stop
+  35: stop
+  36: stop
+  37: stop
+  38: stop
+  162: stop
+  163: stop
+  164: stop
+  165: stop
+  166: stop
+  167: stop
+  168: stop
+  169: stop
+  170: stop
+  171: stop
+  172: stop
+  173: stop
+  174: stop
+  175: stop
+  176: stop
+  177: stop
+  178: stop
+  179: stop
+  180: stop
+  181: stop
+  182: stop
+  183: stop
+  184: stop
+  185: stop
+  186: stop
+  187: stop
+  188: stop
+  189: stop
+  190: stop
+  191: stop
+  192: stop
+  193: stop
+  194: stop
+  195: stop
+  196: stop
+
+  # YIELD signs
+  2: yield
+  39: yield
+
+  # T-intersection (left OR right)
+  11: t_intersection
+  65: t_intersection
+  66: t_intersection
+  67: t_intersection
+  68: t_intersection
+  142: t_intersection
+  143: t_intersection
+  144: t_intersection
+  145: t_intersection
+  146: t_intersection
+  147: t_intersection
+  148: t_intersection
+  149: t_intersection
+  150: t_intersection
+  151: t_intersection
+  236: t_intersection
+  239: t_intersection
+  243: t_intersection
+  246: t_intersection
+  247: t_intersection
+
+  # Left-T (left OR straight)
+  10: left_t_intersect
+  61: left_t_intersect
+  62: left_t_intersect
+  63: left_t_intersect
+  64: left_t_intersect
+  152: left_t_intersect
+  153: left_t_intersect
+  154: left_t_intersect
+  155: left_t_intersect
+  156: left_t_intersect
+  157: left_t_intersect
+  158: left_t_intersect
+  159: left_t_intersect
+  160: left_t_intersect
+  161: left_t_intersect
+  237: left_t_intersect
+  240: left_t_intersect
+  242: left_t_intersect
+  245: left_t_intersect
+  248: left_t_intersect
+  249: left_t_intersect
+
+  # Right-T (right OR straight)
+  9: right_t_intersect
+  57: right_t_intersect
+  58: right_t_intersect
+  59: right_t_intersect
+  60: right_t_intersect
+  132: right_t_intersect
+  133: right_t_intersect
+  134: right_t_intersect
+  135: right_t_intersect
+  136: right_t_intersect
+  137: right_t_intersect
+  138: right_t_intersect
+  139: right_t_intersect
+  140: right_t_intersect
+  141: right_t_intersect
+  235: right_t_intersect
+  238: right_t_intersect
+  241: right_t_intersect
+  244: right_t_intersect
+  260: right_t_intersect
+  261: right_t_intersect
+
+  # 4-way intersection (left OR right OR straight)
+  8: four_way
+  13: four_way
+  14: four_way
+  15: four_way
+  16: four_way
+  17: four_way
+  18: four_way
+  19: four_way
+  44: four_way
+  45: four_way
+  46: four_way
+  47: four_way
+  48: four_way
+  49: four_way
+  50: four_way
+  51: four_way
+  52: four_way
+  53: four_way
+  54: four_way
+  55: four_way
+  56: four_way
+  197: four_way
+  198: four_way
+  199: four_way
+  231: four_way
+  232: four_way
+  233: four_way
+  234: four_way
+  262: four_way
+  263: four_way
+  264: four_way
+
+  # Parking (detect but do NOT stop)
+  75: parking
+  125: parking
+  126: parking
+  127: parking
+  128: parking
+  129: parking
+  130: parking
+  131: parking

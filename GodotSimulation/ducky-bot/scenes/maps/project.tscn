@@ -19,6 +19,8 @@
 [ext_resource type="Texture2D" uid="uid://bd4ix8mvi4jsj" path="res://textures/tag36h11/tag36_11_00033.png" id="18_tag33"]
 [ext_resource type="Texture2D" uid="uid://b2lrousp7ckqn" path="res://textures/tag36h11/tag36_11_00002.png" id="19_tag02"]
 [ext_resource type="Texture2D" uid="uid://ctjf3tmmky78j" path="res://textures/tag36h11/tag36_11_00075.png" id="21_tag75"]
+[ext_resource type="Texture2D" uid="uid://bbdqjg60g1ey7" path="res://textures/tag36h11/tag36_11_00008.png" id="22_tag08"]
+[ext_resource type="Texture2D" uid="uid://twr1j70uybb4" path="res://textures/tag36h11/tag36_11_00011.png" id="23_tag11"]
 
 [sub_resource type="Curve3D" id="Curve3D_xdp4q"]
 _data = {
@@ -291,11 +293,11 @@ sign_texture = ExtResource("14_tag26")
 
 [node name="Sign_10_10" parent="Signs" unique_id=338324099 instance=ExtResource("6_n1yv4")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0.091, 6)
-sign_texture = ExtResource("18_tag33")
+sign_texture = ExtResource("22_tag08")
 
 [node name="Sign_9_10" parent="Signs" unique_id=1921600219 instance=ExtResource("6_n1yv4")]
 transform = Transform3D(1.1924881e-08, 0, -1, 0, 1, 0, 1, 0, 1.1924881e-08, 5.4, 0.091, 6)
-sign_texture = ExtResource("13_tag25")
+sign_texture = ExtResource("23_tag11")
 
 [node name="Sign_9_9" parent="Signs" unique_id=1516801057 instance=ExtResource("6_n1yv4")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 5.4, 0.091, 5.4)
