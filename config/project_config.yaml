@@ -20,5 +20,5 @@ camera_fov_deg: 120.0
 tag_min_decision_margin: 5.0
 # New intersection behaviour
 intersection_stop_seconds: 1.0      # trigger delay when sign is only 0.20 m away
-turn_delay_seconds: 5.0              # move straight forward for 1 s before turning
+turn_delay_seconds: 6.0              # move straight forward for 1 s before turning
 turn_duration_seconds: 0.6

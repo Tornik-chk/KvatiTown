@@ -117,14 +117,14 @@ class FsmInputs:
 
 @dataclass
 class FsmConfig:
-    approach_distance_m: float = 1.2
+    approach_distance_m: float = 1.2      # start slowing down
     stop_distance_m: float = 0.30
-    yield_distance_m: float = 0.30
-    intersection_choice_m: float = 0.20      # sign distance to trigger delay
+    yield_distance_m: float = 0.25
+    intersection_choice_m: float = 0.25   # VERY close to sign before deciding
     stop_hold_seconds: float = 2.0
     yield_hold_seconds: float = 0.5
-    turn_delay_seconds: float = 1.0          # move forward before turning
-    turn_duration_seconds: float = 1.2       # arc turn duration
+    turn_delay_seconds: float = 1.0       # move straight for 1 s before turning
+    turn_duration_seconds: float = 1.2    # arc turn duration (calibrate for 90°)
     turn_choice_cooldown: float = 3.0
     base_speed: float = 0.20
     turn_speed: float = 0.18
@@ -191,26 +191,28 @@ class BehaviorFSM:
             return DriveCommand(inp.lane_cmd.left_pwm, inp.lane_cmd.right_pwm, s.name)
 
         if s == State.APPROACH_SIGN:
-            sign = self._pending_sign
+            sign = self._closest_sign(inp.tags) if inp.tags else None
             if sign is None:
+                # Sign lost – abort approach
                 self._go(State.LANE_FOLLOW, inp.now, log)
-                return DriveCommand(0.0, 0.0, s.name)
+                return DriveCommand(inp.lane_cmd.left_pwm, inp.lane_cmd.right_pwm, s.name)
+
+            self._pending_sign = sign
 
             # Slow down while approaching
             speed_factor = 0.6
             left_cmd = inp.lane_cmd.left_pwm * speed_factor
             right_cmd = inp.lane_cmd.right_pwm * speed_factor
 
-            # When very close to sign, choose maneuver and start delay
+            # Only decide when the sign is truly close
             if sign.distance_m <= self.cfg.intersection_choice_m and self._chosen is None:
                 chosen = choose_maneuver_for_tag(sign.tag_id, sign.sign_type)
                 self._chosen = chosen
                 if log:
-                    log(f"[FSM] Chose {chosen} at tag {sign.tag_id}")
+                    log(f"[FSM] Chose {chosen} at tag {sign.tag_id} (dist {sign.distance_m:.3f}m)")
                 self._intersection_cooldown = inp.now + self.cfg.turn_choice_cooldown
                 self._pending_sign = None
                 self._go(State.TURN_DELAY, inp.now, log)
-                # Immediately start forward motion (handled below)
                 return DriveCommand(self.cfg.base_speed, self.cfg.base_speed, s.name)
             else:
                 return DriveCommand(left_cmd, right_cmd, s.name)
@@ -219,12 +221,7 @@ class BehaviorFSM:
             # Move straight forward for turn_delay_seconds
             if self._time_in_state(inp.now) < self.cfg.turn_delay_seconds:
                 return DriveCommand(self.cfg.base_speed, self.cfg.base_speed, s.name)
-            # Delay expired → start the arc turn
             self._go(State.EXECUTE_TURN, inp.now, log)
-            # Return the turn command immediately
-            # (fall through to EXECUTE_TURN on next call, but we handle it now by recursion? No, just set command for this step)
-            # We'll compute the turn command here and return it.
-            # Recursion not safe; we'll just compute and return.
             left_pwm, right_pwm = self._turn_wheels()
             return DriveCommand(left_pwm, right_pwm, s.name)
 
@@ -232,7 +229,6 @@ class BehaviorFSM:
             left_pwm, right_pwm = self._turn_wheels()
             if self._time_in_state(inp.now) < self.cfg.turn_duration_seconds:
                 return DriveCommand(left_pwm, right_pwm, s.name)
-            # Turn finished
             self._chosen = None
             self._go(State.LANE_FOLLOW, inp.now, log)
             return DriveCommand(inp.lane_cmd.left_pwm, inp.lane_cmd.right_pwm, s.name)
@@ -308,8 +304,8 @@ def _build_fsm_cfg(raw: dict) -> FsmConfig:
     return FsmConfig(
         approach_distance_m=float(raw.get("approach_distance_m", 1.2)),
         stop_distance_m=float(raw.get("stop_distance_m", 0.30)),
-        yield_distance_m=float(raw.get("yield_distance_m", 0.30)),
-        intersection_choice_m=float(raw.get("intersection_choice_m", 0.20)),
+        yield_distance_m=float(raw.get("yield_distance_m", 0.25)),
+        intersection_choice_m=float(raw.get("intersection_choice_m", 0.25)),
         stop_hold_seconds=float(raw.get("stop_hold_seconds", 2.0)),
         yield_hold_seconds=float(raw.get("yield_hold_seconds", 0.5)),
         turn_delay_seconds=float(raw.get("turn_delay_seconds", 1.0)),
