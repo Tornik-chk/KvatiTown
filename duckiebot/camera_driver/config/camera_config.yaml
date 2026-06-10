@@ -1,0 +1,11 @@
+resolution:
+  width: 640
+  height: 480
+framerate: 30
+sensor_mode: 0
+use_hw_acceleration: true
+
+maker: "Seeed Technology Co., Ltd"
+model: "IMX219"
+fov: 160  
+exposure_mode: "sports"

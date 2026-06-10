@@ -1,0 +1,12 @@
+base_speed: 0.23
+curve_feedforward: 0.12
+curve_threshold: 350
+d_gain: 0.58
+detection_threshold: 40
+max_steer: 0.2
+min_cruise_speed: 0.23
+min_wheel_speed: 0.08
+p_gain: 0.5
+smooth_alpha: 0.6
+steer_smooth: 0.6
+turn_speed_ratio: 0.0
