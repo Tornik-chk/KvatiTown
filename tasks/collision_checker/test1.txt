@@ -1,0 +1,2 @@
+rectangle R12 600 300 100 50 0
+circle C10 700 300 25
