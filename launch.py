@@ -337,13 +337,25 @@ def package_task(task_name):
 
     task_models_dir = os.path.join(PROJECT_ROOT, 'tasks', task_name, 'models')
 
+    extra_dirs = []
+    if task_name == 'sign_detection':
+        extra_dirs.append('visual_lane_servoing')
+
     buf = io.BytesIO()
     with tarfile.open(fileobj=buf, mode='w:gz') as tar:
         print(f"   Adding packages: tasks/{task_name}/packages/")
         tar.add(task_packages_dir, arcname=f'tasks/{task_name}/packages', filter=no_pycache)
+
+        for extra in extra_dirs:
+            extra_dir = os.path.join(PROJECT_ROOT, 'tasks', extra, 'packages')
+            if os.path.exists(extra_dir):
+                print(f"   Adding packages: tasks/{extra}/packages/")
+                tar.add(extra_dir, arcname=f'tasks/{extra}/packages', filter=no_pycache)
+
         if os.path.exists(config_dir):
             print(f"   Adding configs: config/")
             tar.add(config_dir, arcname='config', filter=no_pycache)
+
         if os.path.exists(task_models_dir):
             print(f"   Adding models: tasks/{task_name}/models/")
             tar.add(task_models_dir, arcname=f'tasks/{task_name}/models', filter=no_pycache)

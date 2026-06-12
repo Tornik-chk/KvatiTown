@@ -73,6 +73,7 @@ class LaneServoingAgent:
         self._smooth_left       = None
         self._smooth_right      = None
         self._lane_half_width   = float(_LINE_OFFSET)
+        self._white_lane = []
         self.last_debug_info    = self._empty_debug_info(480, 640)
 
         # Left-turn state machine: triggered when yellow disappears (intersection)
@@ -219,6 +220,11 @@ class LaneServoingAgent:
             'curve_dir':         0,
         }
 
+        if yellow_xs and white_xs:
+            self._white_lane = white_xs
+        else:
+            self._white_lane = []
+
         # ── Yellow-end tracker (intersection detection) ───────────────────────
         _YELLOW_MIN_FRAMES = 8
         if yellow_slice_count > 0:
@@ -314,10 +320,13 @@ class LaneServoingAgent:
         self._left_turn_state        = 'none'
         self._left_turn_start        = 0.0
         self._left_turn_cooldown_end = 0.0
+        self._white_lane = []
         print("[Agent] State reset")
 
     def get_debug_info(self, image: np.ndarray) -> dict:
         return self.last_debug_info
+
+
 
     def _empty_debug_info(self, h, w):
         return {
