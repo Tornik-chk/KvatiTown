@@ -1,3 +1,7 @@
+"""
+sign_behavior.py
+"""
+
 import random
 import time
 from typing import Dict, List, Optional
@@ -5,7 +9,7 @@ from typing import Dict, List, Optional
 from tasks.sign_detection.packages.red_line_detection import detect_red_line
 from tasks.sign_detection.packages.april_tag import detect_tags, confirm_tags
 from tasks.sign_detection.packages.detection import vehicle_detected
-from tasks.sign_detection.packages.sign_behaviour_config import (
+from tasks.sign_detection.packages.sign_behavior_config import (
     TagID,
     _TAG_TURNS,
     SignBehaviorConfig,
@@ -22,6 +26,11 @@ class SignBehaviorFSM:
         self.state = State.MOVING
 
         print("[SignBehavior] initialised — detector ready")
+
+        self._saved_tag_time = None
+        self._saved_tag_timeout = 4.0  # seconds 
+
+        self._approach_start_time = None
 
         self._tag_buffer = {}       # type: Dict[int, int]
         self._saved_tag = None      # type: Optional[TagID]
@@ -63,6 +72,8 @@ class SignBehaviorFSM:
         self._tag_buffer.clear()
         self._saved_tag = None
 
+        self._saved_tag_time = None
+
         self._hold_counter = 0.0
         self._turn_counter = 0.0
         self._check_counter = 0.0
@@ -78,6 +89,8 @@ class SignBehaviorFSM:
 
         self._red_line_locked = False
         self._ignore_red_counter = 0.0
+
+        self._approach_start_time = None
 
         self._left_offsets.clear()
         self._right_offsets.clear()
@@ -244,6 +257,7 @@ class SignBehaviorFSM:
                     )
 
                 self._saved_tag = tag_id
+                self._saved_tag_time = time.monotonic()
                 return
 
         for raw_tag_id in confirmed_tags:
@@ -261,9 +275,26 @@ class SignBehaviorFSM:
                     )
 
                 self._saved_tag = tag_id
+                self._saved_tag_time = time.monotonic()
                 return
 
     def _fsm_step(self, confirmed_tags, detections, red_line, base_left, base_right, frame_rgb):
+        # Expire stale sign
+        if (
+            self._saved_tag is not None
+            and self._saved_tag_time is not None
+        ):
+            age = time.monotonic() - self._saved_tag_time
+
+            if age > self._saved_tag_timeout:
+                print(
+                    f"[SignBehavior] sign expired "
+                    f"(tag={self._saved_tag}, age={age:.1f}s)"
+                )
+
+                self._saved_tag = None
+                self._saved_tag_time = None
+
         # MOVING
         if self.state == State.MOVING:
             self._save_confirmed_sign(confirmed_tags)
@@ -288,11 +319,12 @@ class SignBehaviorFSM:
                     self._chosen_turn = self._pick_turn()
                     self._active_sign_op = f"intersection turn '{self._chosen_turn}'"
                     self._saved_tag = None
-                    self._set_state(State.INTERSECT)
+                    self._saved_tag_time = None
+                    self.state = State.APPROACHING
+                    self._approach_start_time = time.monotonic()
 
                     print(
-                        f"[SignBehavior] >>> INTERSECT — direction: {self._chosen_turn} "
-                        f"(from tag {tag}, options {self._possible_turns})"
+                        "[SignBehavior] red line reached -> APPROACHING"
                     )
 
                     return base_left, base_right
@@ -314,6 +346,7 @@ class SignBehaviorFSM:
                 self._chosen_turn = "forward"
                 self._active_sign_op = "intersection turn 'forward' without tag"
                 self._saved_tag = None
+                self._saved_tag_time = None
                 self._set_state(State.INTERSECT)
 
                 print("[SignBehavior] >>> INTERSECT — default forward")
@@ -350,11 +383,13 @@ class SignBehaviorFSM:
             if self._slow_factor < stopped_speed_threshold:
                 self._slow_factor = 0.0
                 self._saved_tag = None
+                self._saved_tag_time = None
                 self._set_state(State.STOPPED)
                 print("[SignBehavior] >>> STOPPED at red line")
                 return 0.0, 0.0
 
             return left, right
+        
 
         # STOPPED
         if self.state == State.STOPPED:
@@ -371,6 +406,32 @@ class SignBehaviorFSM:
             self._set_state(State.CHECKPATH)
             print("[SignBehavior] >>> CHECKPATH — checking for vehicles")
             return 0.0, 0.0
+        
+        if self.state == State.APPROACHING:
+
+            # _approach_start_time may be None in some code paths; guard against that
+            if self._approach_start_time is None:
+                self._approach_start_time = time.monotonic()
+
+            elapsed = time.monotonic() - self._approach_start_time
+
+            if elapsed < self.cfg.approach_duration:
+
+                s = self.cfg.approach_speed
+
+                return (
+                    s,
+                    s
+                )
+
+            print(
+                "[SignBehavior] approach complete"
+            )
+
+
+            self._set_state(State.INTERSECT)
+
+            return base_left, base_right
 
         # CHECKPATH
         if self.state == State.CHECKPATH:
@@ -570,6 +631,7 @@ class SignBehaviorFSM:
         self._possible_turns = []
         self._chosen_turn = None
         self._saved_tag = None
+        self._saved_tag_time = None
         self._active_sign_op = None
 
         self._slow_factor = 1.0

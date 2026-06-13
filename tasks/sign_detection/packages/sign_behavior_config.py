@@ -1,3 +1,7 @@
+"""
+sign_behavior_config.py
+"""
+
 from enum import IntEnum, auto
 from typing import Dict, List, Optional, Tuple
 
@@ -44,6 +48,7 @@ _TAG_TURNS: Dict[TagID, List[str]] = {
 
 class State(IntEnum):
     MOVING = auto()
+    APPROACHING = auto()
     SLOWING = auto()
     STOPPED = auto()
     CHECKPATH = auto()
@@ -89,6 +94,16 @@ class SignBehaviorConfig:
 
         # After finishing sign behavior, ignore the same red line for a while.
         self.red_ignore_after_frames: int = kwargs.pop("red_ignore_after_frames", 100)
+
+        self.approach_duration = kwargs.pop(
+            "approach_duration",
+            0.2,
+        )
+
+        self.approach_speed = kwargs.pop(
+            "approach_speed",
+            0.05,
+        )
 
         # Slow approach after seeing a sign but before red line.
         self.approach_speed_factor: float = kwargs.pop("approach_speed_factor", 0.75)
