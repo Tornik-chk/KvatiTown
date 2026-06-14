@@ -12,7 +12,6 @@ import numpy as np
 from tasks.visual_lane_servoing.packages.agent import LaneServoingAgent
 from tasks.sign_detection.packages.sign_behavior import SignBehaviorFSM
 from tasks.sign_detection.packages.sign_behavior import SignBehaviorConfig
-from tasks.sign_detection.packages.duck_detector import DuckDetector
 
 
 class LaneServoingAgentWithSigns(LaneServoingAgent):
@@ -35,7 +34,6 @@ class LaneServoingAgentWithSigns(LaneServoingAgent):
             cfg = sign_config
 
         self._sign_fsm = SignBehaviorFSM(config=cfg)
-        self._duck_detector = DuckDetector()
 
     def reset_behavior(self):
         if hasattr(self, "_sign_fsm") and self._sign_fsm is not None:

@@ -236,28 +236,11 @@ def detect_obstacles(frame_rgb: np.ndarray) -> List[Detection]:
 
     hsv = cv2.cvtColor(frame_rgb, cv2.COLOR_RGB2HSV)
 
-    # -----------------------------
-    # DUCK / YELLOW DETECTION
-    # # -----------------------------
-    # # Wider than before because real duck can be darker/smaller.
-    # yellow_lower = np.array([18, 80, 80], dtype=np.uint8)
-    # yellow_upper = np.array([38, 255, 255], dtype=np.uint8)
-    # yellow_mask = cv2.inRange(hsv, yellow_lower, yellow_upper)
-
-    # # Ignore very top area.
-    # yellow_mask[:int(frame_h * 0.10), : ] = 0
-
-    # yellow_mask = _clean_mask(yellow_mask, open_size=3, close_size=5)
-
     detections: List[Detection] = []
 
-    # for candidate in _mask_to_candidates(yellow_mask, min_area=70.0):
-    #     if not _is_duck_candidate(candidate, frame_w, frame_h):
-    #         continue
-
-    #     bbox = candidate["bbox"]
-    #     score = min(1.0, candidate["bbox_area"] / 6500.0)
-    #     detections.append((bbox, score, 0))
+    # Duckie detection from ONNX model
+    for bbox, score, cls_id in _duck_detector.detect(frame_rgb):
+        detections.append((bbox, score, 0))
 
     # -----------------------------
     # TRUCK / BLUE DETECTION
@@ -269,11 +252,6 @@ def detect_obstacles(frame_rgb: np.ndarray) -> List[Detection]:
 
     for x1, y1, x2, y2, area in _mask_to_bboxes(blue_mask):
         detections.append(((x1, y1, x2, y2), min(1.0, area / 5000.0), 1))
-
-    duck_detections = _duck_detector.detect(frame_rgb)
-
-    for bbox, score, cls_id in duck_detections:
-        detections.append((bbox, score, 0))
 
     return detections
 
