@@ -1,8 +1,16 @@
+"""
+detection.py
+"""
+
+
 import numpy as np
 import cv2
 from typing import List, Tuple, Optional
 
-from tasks.sign_detection.packages.sign_behaviour_config import State
+from tasks.sign_detection.packages.sign_behavior_config import State
+from tasks.sign_detection.packages.duck_detector import DuckDetector
+
+_duck_detector = DuckDetector()
 
 
 # todo - at intersection not many signs are seen. area will be enough
@@ -185,67 +193,24 @@ def _is_duck_candidate(candidate: dict, frame_w: int, frame_h: int) -> bool:
 
 
 def _duck_close_enough(
-    bbox: Tuple[int, int, int, int],
-    score: float,
+    bbox,
+    score,
     state,
-    white_x = [],
-) -> bool:
+    white_x=None,
+):
+    if score < 0.45:
+        return False
+
     x1, y1, x2, y2 = bbox
 
-    box_w = x2 - x1
-    box_h = y2 - y1
-    area = box_w * box_h
-    cx = (x1 + x2) / 2.0
-    aspect = box_w / float(box_h + 1e-6)
+    area = (x2 - x1) * (y2 - y1)
+    y2_ratio = y2 / IMG_HEIGHT
 
-    if score < 0.20:
-        return False
-
-    if cx < IMG_WIDTH * 0.16 or cx > IMG_WIDTH * 0.84:
-        return False
-
-    if aspect > 2.25:
-        return False
-
-    if aspect < 0.30:
-        return False
-
-    if box_h < IMG_HEIGHT * 0.025:
-        return False
-
-    if area < IMG_WIDTH * IMG_HEIGHT * 0.00045:
-        return False
-
-    # -----------------------------
-    # Intersection:
-    # area-only rule
-    # -----------------------------
     if state != State.MOVING:
-        print("INTERSECTIONNNNNNNNNNNNNNNNNN")
-        if area < 10000:
-            return False
+        return area > 10000
 
-    # -----------------------------
-    # Normal driving:
-    # use white-lane distance
-    # -----------------------------
-    else:
-        if area < 3000:
-            return False
+    return y2_ratio > DUCK_STOP_Y2_RATIO
 
-        if white_x is not None:
-            white_x = float(np.median(white_x))
-            dist = abs(cx - white_x)
-
-            print(
-                f"duck-white distance={dist:.1f}px "
-                f"area={area}"
-            )
-
-            if dist > 250:
-                return False
-
-    return y2 >= IMG_HEIGHT * DUCK_STOP_Y2_RATIO
 
 
 # =========================================================
@@ -273,26 +238,26 @@ def detect_obstacles(frame_rgb: np.ndarray) -> List[Detection]:
 
     # -----------------------------
     # DUCK / YELLOW DETECTION
-    # -----------------------------
-    # Wider than before because real duck can be darker/smaller.
-    yellow_lower = np.array([18, 80, 80], dtype=np.uint8)
-    yellow_upper = np.array([38, 255, 255], dtype=np.uint8)
-    yellow_mask = cv2.inRange(hsv, yellow_lower, yellow_upper)
+    # # -----------------------------
+    # # Wider than before because real duck can be darker/smaller.
+    # yellow_lower = np.array([18, 80, 80], dtype=np.uint8)
+    # yellow_upper = np.array([38, 255, 255], dtype=np.uint8)
+    # yellow_mask = cv2.inRange(hsv, yellow_lower, yellow_upper)
 
-    # Ignore very top area.
-    yellow_mask[:int(frame_h * 0.10), : ] = 0
+    # # Ignore very top area.
+    # yellow_mask[:int(frame_h * 0.10), : ] = 0
 
-    yellow_mask = _clean_mask(yellow_mask, open_size=3, close_size=5)
+    # yellow_mask = _clean_mask(yellow_mask, open_size=3, close_size=5)
 
     detections: List[Detection] = []
 
-    for candidate in _mask_to_candidates(yellow_mask, min_area=70.0):
-        if not _is_duck_candidate(candidate, frame_w, frame_h):
-            continue
+    # for candidate in _mask_to_candidates(yellow_mask, min_area=70.0):
+    #     if not _is_duck_candidate(candidate, frame_w, frame_h):
+    #         continue
 
-        bbox = candidate["bbox"]
-        score = min(1.0, candidate["bbox_area"] / 6500.0)
-        detections.append((bbox, score, 0))
+    #     bbox = candidate["bbox"]
+    #     score = min(1.0, candidate["bbox_area"] / 6500.0)
+    #     detections.append((bbox, score, 0))
 
     # -----------------------------
     # TRUCK / BLUE DETECTION
@@ -304,6 +269,11 @@ def detect_obstacles(frame_rgb: np.ndarray) -> List[Detection]:
 
     for x1, y1, x2, y2, area in _mask_to_bboxes(blue_mask):
         detections.append(((x1, y1, x2, y2), min(1.0, area / 5000.0), 1))
+
+    duck_detections = _duck_detector.detect(frame_rgb)
+
+    for bbox, score, cls_id in duck_detections:
+        detections.append((bbox, score, 0))
 
     return detections
 
@@ -375,11 +345,11 @@ def should_stop(
         # -----------------------------
         # DUCK STOP
         # -----------------------------
-        # if cls_id == 0:
-        #     if _duck_close_enough(bbox, score, state, white_x):
-        #         duck_threat = True
-        #         reason = f"duckie close enough score={score:.2f} bbox={bbox}"
-        #         print(f"[ObstacleStop] DUCKIE candidate close (area={area:.0f})")
+        if cls_id == 0:
+            if _duck_close_enough(bbox, score, state, white_x):
+                duck_threat = True
+                reason = f"duckie close enough score={score:.2f} bbox={bbox}"
+                print(f"[ObstacleStop] DUCKIE candidate close (area={area:.0f})")
 
         # -----------------------------
         # TRUCK STOP

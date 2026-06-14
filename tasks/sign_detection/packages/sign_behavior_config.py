@@ -97,7 +97,7 @@ class SignBehaviorConfig:
 
         self.approach_duration = kwargs.pop(
             "approach_duration",
-            0.2,
+            1,
         )
 
         self.approach_speed = kwargs.pop(
