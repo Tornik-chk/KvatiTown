@@ -1,4 +1,4 @@
-base_speed: 0.23
+base_speed: 0.17
 curve_feedforward: 0.12
 curve_threshold: 350
 d_gain: 0.58

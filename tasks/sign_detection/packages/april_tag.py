@@ -112,6 +112,11 @@ def _raw_detect(gray):
         tag_id = _decode_warped(bw)
         if tag_id is not None and tag_id not in seen:
             seen.add(tag_id)
+            if tag_id == 10:
+                tag_id = 11
+            elif tag_id == 11:
+                tag_id = 10
+
             tags.append({"tag_id": tag_id, "corners": src})
 
     return tags
@@ -133,6 +138,13 @@ def detect_tags(signBehavior, frame_rgb):
 
         tags = []
         for c, tid in zip(corners, ids.flatten()):
+            tid = int(tid)
+
+            # bot reads 10 and 11 backwards
+            if tid == 10:
+                tid = 11
+            elif tid == 11:
+                tid = 10
             tags.append({"tag_id": int(tid), "corners": c.reshape(4, 2)})
 
         # if tags:

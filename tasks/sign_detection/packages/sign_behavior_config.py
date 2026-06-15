@@ -36,13 +36,15 @@ def resolve_tag(raw_id: int) -> Optional[TagID]:
 
 
 _TAG_TURNS: Dict[TagID, List[str]] = {
-    # TagID.TURN_LEFT_RIGHT: ["left", "right"],
-    # TagID.TURN_LEFT_RIGHT: ["right"],
-    TagID.TURN_LEFT_RIGHT: ["forward"],
-    # TagID.TURN_LEFT_FWD: ["left", "forward"],
-    TagID.TURN_LEFT_FWD: ["left"],
-    TagID.TURN_RIGHT_FWD: ["right"],
-    # TagID.TURN_RIGHT_FWD: ["right", "forward"],
+
+    # 9 = Forward + Right
+    TagID.TURN_RIGHT_FWD: ["forward", "right"],
+
+    # 10 = Left + Right
+    TagID.TURN_LEFT_FWD: ["left", "right"],
+
+    # 11 = Forward + Left
+    TagID.TURN_LEFT_RIGHT: ["forward", "left"],
 }
 
 
@@ -97,12 +99,12 @@ class SignBehaviorConfig:
 
         self.approach_duration = kwargs.pop(
             "approach_duration",
-            1,
+            3,
         )
 
         self.approach_speed = kwargs.pop(
             "approach_speed",
-            0.05,
+            0.1,
         )
 
         # Slow approach after seeing a sign but before red line.
@@ -125,14 +127,14 @@ class SignBehaviorConfig:
         self.post_stop_speed: float = kwargs.pop("post_stop_speed", 0.4)
 
         # Pre-turn forward creep
-        self.preturn_right_frames: int = kwargs.pop("preturn_right_frames", 20)
-        self.preturn_left_frames: int = kwargs.pop("preturn_left_frames", 18)
-        self.preturn_speed: float = kwargs.pop("preturn_speed", 0.4)
+        self.preturn_right_frames: int = kwargs.pop("preturn_right_frames", 6)
+        self.preturn_left_frames: int = kwargs.pop("preturn_left_frames", 3)
+        self.preturn_speed: float = kwargs.pop("preturn_speed", 0.2)
 
-        # Intersection manoeuvres
+        # Intersection manoeuvre
         self.intersect_forward_frames: int = kwargs.pop("intersect_forward_frames", 40)
-        self.intersect_left_frames: int = kwargs.pop("intersect_left_frames", 40)
-        self.intersect_right_frames: int = kwargs.pop("intersect_right_frames", 25)
+        self.intersect_left_frames: int = kwargs.pop("intersect_left_frames", 55)
+        self.intersect_right_frames: int = kwargs.pop("intersect_right_frames", 40)
 
         # for new bot right needs more speed
         self.intersect_forward_speed: Tuple[float, float] = kwargs.pop(
