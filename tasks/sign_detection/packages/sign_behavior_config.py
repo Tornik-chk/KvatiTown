@@ -112,19 +112,19 @@ class SignBehaviorConfig:
         self.approach_ramp_factor: float = kwargs.pop("approach_ramp_factor", 0.985)
 
         # Full stop behavior
-        self.stop_hold_frames: int = kwargs.pop("stop_hold_frames", 50)
+        self.stop_hold_frames: int = kwargs.pop("stop_hold_frames", 18)
         self.slow_ramp_factor: float = kwargs.pop("slow_ramp_factor", 0.8)
         self.stopped_speed_threshold: float = kwargs.pop("stopped_speed_threshold", 0.055)
 
         # CHECKPATH sweep
-        self.check_left_frames: int = kwargs.pop("check_left_frames", 20)
-        self.check_right_frames: int = kwargs.pop("check_right_frames", 10)
-        self.check_turn_speed: float = kwargs.pop("check_turn_speed", 0.25)
-        self.check_settle_frames: int = kwargs.pop("check_settle_frames", 30)
+        self.check_left_frames: int = kwargs.pop("check_left_frames", 8)
+        self.check_right_frames: int = kwargs.pop("check_right_frames", 6)
+        self.check_turn_speed: float = kwargs.pop("check_turn_speed", 0.22)
+        self.check_settle_frames: int = kwargs.pop("check_settle_frames", 6)
 
         # POST_STOP
-        self.post_stop_frames: int = kwargs.pop("post_stop_frames", 40)
-        self.post_stop_speed: float = kwargs.pop("post_stop_speed", 0.4)
+        self.post_stop_frames: int = kwargs.pop("post_stop_frames", 12)
+        self.post_stop_speed: float = kwargs.pop("post_stop_speed", 0.28)
 
         # Pre-turn forward creep
         self.preturn_right_frames: int = kwargs.pop("preturn_right_frames", 6)

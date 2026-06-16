@@ -56,8 +56,8 @@ Detection = Tuple[Tuple[int, int, int, int], float, int]
 DUCK_STOP_Y2_RATIO = 0.70
 
 DUCK_CONFIRM_FRAMES = 2
-TRUCK_CONFIRM_FRAMES = 1
-STOP_LATCH_FRAMES = 5
+TRUCK_CONFIRM_FRAMES = 3
+STOP_LATCH_FRAMES = 2
 
 _duck_counter = 0
 _truck_counter = 0
@@ -246,12 +246,42 @@ def detect_obstacles(frame_rgb: np.ndarray) -> List[Detection]:
     # TRUCK / BLUE DETECTION
     # -----------------------------
     # Kept from your working uncommented version.
-    blue_lower = np.array([90, 80, 80], dtype=np.uint8)
-    blue_upper = np.array([130, 255, 255], dtype=np.uint8)
+    blue_lower = np.array([95, 90, 60], dtype=np.uint8)
+    blue_upper = np.array([125, 255, 220], dtype=np.uint8)
+
     blue_mask = cv2.inRange(hsv, blue_lower, blue_upper)
 
-    for x1, y1, x2, y2, area in _mask_to_bboxes(blue_mask):
-        detections.append(((x1, y1, x2, y2), min(1.0, area / 5000.0), 1))
+    # Ignore sky/top reflections
+    blue_mask[:int(frame_h * 0.22), :] = 0
+
+    blue_mask = _clean_mask(blue_mask, open_size=5, close_size=9)
+
+    for x1, y1, x2, y2, contour_area in _mask_to_bboxes(blue_mask):
+        box_w = x2 - x1
+        box_h = y2 - y1
+        bbox_area = box_w * box_h
+
+        if bbox_area < 4500:
+            continue
+
+        aspect = box_w / float(box_h + 1e-6)
+
+        # Truck should not be a tiny line/reflection blob
+        if aspect < 0.6 or aspect > 3.2:
+            continue
+
+        # Must be in lower/middle driving view
+        cy = (y1 + y2) / 2.0
+        if cy < frame_h * 0.35:
+            continue
+
+        # Reject weak filled blobs / light glare
+        fill_ratio = contour_area / float(bbox_area + 1e-6)
+        if fill_ratio < 0.35:
+            continue
+
+        score = min(1.0, bbox_area / 18000.0)
+        detections.append(((x1, y1, x2, y2), score, 1))
 
     return detections
 
@@ -334,18 +364,24 @@ def should_stop(
         # -----------------------------
         # Kept from your working uncommented version.
         if cls_id == 1:
-            if area < 50000:
+            if score < 0.45:
                 continue
-            if height < 15:
+
+            if area < 18000:
                 continue
-            if cy < IMG_HEIGHT * 0.25:
+
+            if height < IMG_HEIGHT * 0.12:
                 continue
-            if cx < 0.08 * IMG_WIDTH or cx > 0.92 * IMG_WIDTH:
+
+            if cy < IMG_HEIGHT * 0.42:
+                continue
+
+            if cx < 0.18 * IMG_WIDTH or cx > 0.82 * IMG_WIDTH:
                 continue
 
             truck_threat = True
-            reason = f"truck too close area={area:.0f} h={height:.0f}"
-            print(f"[ObstacleStop] TRUCK STOP (area={area:.0f}, h={height:.0f})")
+            reason = f"truck close area={area:.0f} h={height:.0f} score={score:.2f}"
+            print(f"[ObstacleStop] TRUCK STOP confirmed candidate area={area:.0f}, h={height:.0f}")
 
     if duck_threat:
         _duck_counter += 1
