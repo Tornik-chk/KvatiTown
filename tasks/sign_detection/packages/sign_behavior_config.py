@@ -104,7 +104,7 @@ class SignBehaviorConfig:
 
         self.approach_speed = kwargs.pop(
             "approach_speed",
-            0.1,
+            0.2,
         )
 
         # Slow approach after seeing a sign but before red line.

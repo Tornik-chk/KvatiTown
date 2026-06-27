@@ -325,6 +325,7 @@ def package_task(task_name):
     print(f"Packaging task: {task_name}")
     task_packages_dir = os.path.join(PROJECT_ROOT, 'tasks', task_name, 'packages')
     config_dir = os.path.join(PROJECT_ROOT, 'config')
+    server_dir = os.path.join(PROJECT_ROOT, 'servers', task_name)
 
     if not os.path.exists(task_packages_dir):
         print(f"Error: Task packages directory not found: {task_packages_dir}")
@@ -359,6 +360,10 @@ def package_task(task_name):
         if os.path.exists(task_models_dir):
             print(f"   Adding models: tasks/{task_name}/models/")
             tar.add(task_models_dir, arcname=f'tasks/{task_name}/models', filter=no_pycache)
+
+        if os.path.exists(server_dir):
+            print(f"   Adding server: servers/{task_name}/")
+            tar.add(server_dir, arcname=f'servers/{task_name}', filter=no_pycache)
 
     buf.seek(0)
     print("Package created!")

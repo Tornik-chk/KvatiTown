@@ -1,7 +1,7 @@
-base_speed: 0.17
+base_speed: 0.17  # 0.25 v1 0.17 ordis
 curve_feedforward: 0.12
 curve_threshold: 350
-d_gain: 0.58
+d_gain: 0.60 # 0.6 v1,  0,58 ordis
 detection_threshold: 40
 max_steer: 0.2
 min_cruise_speed: 0.23

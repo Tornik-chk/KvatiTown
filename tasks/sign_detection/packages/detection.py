@@ -247,7 +247,7 @@ def detect_obstacles(frame_rgb: np.ndarray) -> List[Detection]:
     # -----------------------------
     # Kept from your working uncommented version.
     blue_lower = np.array([95, 90, 60], dtype=np.uint8)
-    blue_upper = np.array([125, 255, 220], dtype=np.uint8)
+    blue_upper = np.array([135, 255, 255], dtype=np.uint8)
 
     blue_mask = cv2.inRange(hsv, blue_lower, blue_upper)
 
